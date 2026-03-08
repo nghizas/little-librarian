@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Little Librarian - Library{% endblock %}
+
+{% block content %}
+<div class="stats-bar" style="grid-template-columns: 1fr;">
+    <div class="stat-card">
+        <div class="stat-number">{{ stats.current_count }}</div>
+        <div class="stat-label">In Library</div>
+    </div>
+</div>
+
+<form class="add-form" method="POST" action="{{ url_for('add_book_manual') }}">
+    <div class="form-row">
+        <div class="form-field" style="flex: 2;">
+            <label for="title">Title</label>
+            <input type="text" id="title" name="title" placeholder="Book title" required>
+        </div>
+        <div class="form-field">
+            <label for="author">Author</label>
+            <input type="text" id="author" name="author" placeholder="Optional">
+        </div>
+        <button type="submit" class="btn btn-primary btn-small" style="margin-bottom: 1px;">Add</button>
+    </div>
+</form>
+
+{% if books %}
+<div class="card" style="padding: 0; overflow: hidden;">
+    <table class="book-table" id="libraryTable">
+        <thead>
+            <tr>
+                <th class="sortable" data-sort="text" data-col="0">Book</th>
+                <th class="sortable" data-sort="num" data-col="1">Date</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for book in books %}
+            <tr>
+                <td class="col-title">{{ book.title }}<div class="col-author">{{ book.author or '' }}</div></td>
+                <td class="col-date" data-sort-value="{{ book.last_event_at }}">
+                    {{ book.last_event_at | todatetime | attr('strftime')('%b %-d') }}
+                    {% set days = ((now - (book.last_event_at | todatetime)).total_seconds() / 86400) | int %}
+                    <div class="col-days">
+                        {% if days == 0 %}today
+                        {% elif days == 1 %}1 day
+                        {% else %}{{ days }} days{% endif %}
+                    </div>
+                </td>
+                <td class="col-actions">
+                    <a href="{{ url_for('book_detail', book_id=book.id) }}" class="btn-table-action">View</a>
+                    <form method="POST" action="{{ url_for('checkout_book', book_id=book.id) }}">
+                        <button type="submit" class="btn-checkout" style="width:100%;">Check Out</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% else %}
+<div class="empty-state">
+    <span class="empty-icon">📚</span>
+    <p>Your library is empty! Add a book above or scan the shelf.</p>
+</div>
+{% endif %}
+{% endblock %}

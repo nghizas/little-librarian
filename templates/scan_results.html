@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Little Librarian - Scan Results{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Scan Results</h1>
+    <p>Review what changed and confirm</p>
+</div>
+
+<form method="POST" action="{{ url_for('confirm_scan', scan_id=scan_id) }}">
+    <input type="hidden" name="new_books_data" value='{{ new_books | tojson }}'>
+    <input type="hidden" name="ambiguous_data" value='{{ ambiguous | tojson }}'>
+    <input type="hidden" name="missing_data" value='{{ missing | tojson }}'>
+
+    {# --- New books detected --- #}
+    {% if new_books %}
+    <div class="section-header new">New Books Detected ({{ new_books|length }})</div>
+    {% for book in new_books %}
+    <div class="result-card new-book">
+        <div class="result-header">
+            <input type="checkbox" class="result-checkbox" name="add_new_{{ loop.index0 }}" value="1" checked>
+            <div>
+                <strong>{{ book.title }}</strong>
+                {% if book.author %}<span class="text-muted"> by {{ book.author }}</span>{% endif %}
+                {% if book.confidence %}
+                <span class="confidence-badge confidence-{{ book.confidence }}">{{ book.confidence }}</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="result-fields">
+            <input type="text" name="new_title_{{ loop.index0 }}" value="{{ book.title }}" placeholder="Title">
+            <input type="text" name="new_author_{{ loop.index0 }}" value="{{ book.author or '' }}" placeholder="Author (optional)">
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    {# --- Ambiguous matches --- #}
+    {% if ambiguous %}
+    <div class="section-header" style="color: var(--amber);">Unsure Matches ({{ ambiguous|length }})</div>
+    {% for item in ambiguous %}
+    <div class="result-card ambiguous-book">
+        <div class="result-header">
+            <div>
+                <strong>{{ item.detected.title }}</strong>
+                <span class="text-muted text-small"> ~ {{ item.score|int }}% match with "{{ item.book.title }}"</span>
+            </div>
+        </div>
+        <div class="radio-group">
+            <label>
+                <input type="radio" name="ambiguous_action_{{ loop.index0 }}" value="match" checked>
+                Same book
+            </label>
+            <label>
+                <input type="radio" name="ambiguous_action_{{ loop.index0 }}" value="new">
+                Different book
+            </label>
+        </div>
+        <div class="result-fields">
+            <input type="text" name="amb_title_{{ loop.index0 }}" value="{{ item.detected.title }}" placeholder="Title">
+            <input type="text" name="amb_author_{{ loop.index0 }}" value="{{ item.detected.author or '' }}" placeholder="Author">
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    {# --- Books that appear to be gone --- #}
+    {% if missing %}
+    <div class="section-header missing">Books Checked Out ({{ missing|length }})</div>
+    {% for book in missing %}
+    <div class="result-card missing-book">
+        <div class="result-header">
+            <input type="checkbox" class="result-checkbox" name="remove_{{ loop.index0 }}" value="1" checked>
+            <div>
+                <strong>{{ book.title }}</strong>
+                {% if book.author %}<span class="text-muted"> by {{ book.author }}</span>{% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    {# --- Still here (matched) --- #}
+    {% if matched %}
+    <div class="section-header">Still Here ({{ matched|length }})</div>
+    {% for item in matched %}
+    <div class="result-card matched-book">
+        <div class="result-header">
+            <div>
+                <span>{{ item.book.title }}</span>
+                {% if item.book.author %}<span class="text-muted"> by {{ item.book.author }}</span>{% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    {# --- No changes --- #}
+    {% if not new_books and not ambiguous and not missing %}
+    <div class="empty-state">
+        <span class="empty-icon">✨</span>
+        <p>No changes detected! Everything looks the same.</p>
+    </div>
+    {% endif %}
+
+    <div class="btn-group">
+        <button type="submit" class="btn btn-primary">Confirm Changes</button>
+        <a href="{{ url_for('discard_scan', scan_id=scan_id) }}"
+           class="btn btn-outline"
+           onclick="event.preventDefault(); fetch('{{ url_for('discard_scan', scan_id=scan_id) }}', {method:'POST'}).then(() => window.location='{{ url_for('inventory') }}');">
+            Discard
+        </a>
+    </div>
+</form>
+{% endblock %}

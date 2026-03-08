@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Little Librarian - Scan{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Scan Library</h1>
+    <p>Take a photo of the shelf to see what's changed</p>
+</div>
+
+<form method="POST" enctype="multipart/form-data" id="scanForm">
+    <div class="scan-upload" id="uploadArea">
+        <label for="photoInput">
+            <div class="upload-area upload-area-accent">
+                <span class="upload-icon">📷</span>
+                <div class="upload-text">Tap to take a photo</div>
+                <div class="upload-subtext">or choose from your photo library</div>
+            </div>
+        </label>
+        <input type="file" id="photoInput" name="photo" accept="image/*">
+    </div>
+
+    <div id="preview" style="display: none;">
+        <img id="previewImg" style="width: 100%; border-radius: var(--radius); margin-bottom: 12px;">
+        <button type="submit" class="btn btn-primary btn-full" id="submitBtn">
+            Scan Books
+        </button>
+    </div>
+</form>
+
+<div class="loading" id="loading">
+    <div class="spinner"></div>
+    <div class="loading-text">Reading book spines...</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const photoInput = document.getElementById('photoInput');
+const preview = document.getElementById('preview');
+const previewImg = document.getElementById('previewImg');
+const uploadArea = document.getElementById('uploadArea');
+const scanForm = document.getElementById('scanForm');
+const loading = document.getElementById('loading');
+const submitBtn = document.getElementById('submitBtn');
+
+photoInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            previewImg.src = e.target.result;
+            uploadArea.style.display = 'none';
+            preview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+scanForm.addEventListener('submit', () => {
+    submitBtn.disabled = true;
+    preview.style.display = 'none';
+    loading.classList.add('active');
+});
+</script>
+{% endblock %}

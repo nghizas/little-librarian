@@ -1,0 +1,14 @@
+[project]
+name = "little-librarian"
+version = "0.1.0"
+description = "Little Free Library book tracker"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "anthropic>=0.84.0",
+    "flask>=3.1.3",
+    "gunicorn>=25.1.0",
+    "pillow>=12.1.1",
+    "python-dotenv>=1.2.2",
+    "rapidfuzz>=3.14.3",
+]

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Little Librarian - History{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>History</h1>
+</div>
+
+<div class="stats-bar" style="grid-template-columns: 1fr; margin-bottom: 16px;">
+    <div class="stat-card">
+        <div class="stat-number">{{ unique_books }}</div>
+        <div class="stat-label">Unique Books</div>
+    </div>
+</div>
+
+{% if events %}
+<div class="card" style="padding: 0; overflow: hidden;">
+    <table class="book-table" id="historyTable">
+        <thead>
+            <tr>
+                <th class="sortable" data-sort="text" data-col="0">Event</th>
+                <th class="sortable" data-sort="text" data-col="1">Title</th>
+                <th class="sortable" data-sort="text" data-col="2">Author</th>
+                <th class="sortable" data-sort="num" data-col="3">When</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for event in events %}
+            <tr>
+                <td><span class="event-badge {{ event.event_type | lower }}">{% if event.event_type == 'CHECKED_OUT' %}CHECKED OUT{% else %}{{ event.event_type }}{% endif %}</span></td>
+                <td class="col-title"><a href="{{ url_for('book_detail', book_id=event.book_id) }}" class="event-title">{{ event.title }}</a></td>
+                <td class="col-author">{{ event.author or '—' }}</td>
+                <td class="col-date" data-sort-value="{{ event.created_at }}">{{ event.created_at | timeago }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="pagination">
+    {% if page > 1 %}
+    <a href="{{ url_for('history', page=page-1) }}" class="btn btn-outline">Newer</a>
+    {% endif %}
+    {% if events|length == per_page %}
+    <a href="{{ url_for('history', page=page+1) }}" class="btn btn-outline">Older</a>
+    {% endif %}
+</div>
+{% else %}
+<div class="empty-state">
+    <span class="empty-icon">📋</span>
+    <p>No history yet. Scan your library to get started!</p>
+</div>
+{% endif %}
+{% endblock %}
